@@ -172,6 +172,7 @@ type
 
   TFMXAppServiceReplacement = class(TInterfacedObject, IFMXApplicationService)
   strict private
+    FRunning:boolean;
     FEvent : TEvent;
     FTerminating : Boolean;
   public
@@ -186,6 +187,7 @@ type
     procedure SetTitle(const Value: string);
     procedure Terminate;
     function Terminating: Boolean;
+    function Running: Boolean;
 
     {$if CompilerVersion >= 29} // XE8 and above
       function GetVersionString: string;
@@ -985,7 +987,13 @@ begin
   // Do nothing while running; this event is set when the app should terminate
   // See explanation for why this happens (and how the whole FMX app running hack works) in
   // TFMXAppRunningHack.EnsureFMXAppRunning
+  FRunning := true;
   FEvent.WaitFor(INFINITE);
+end;
+
+function TFMXAppServiceReplacement.Running: Boolean;
+begin
+  result := FRunning;
 end;
 
 procedure TFMXAppServiceReplacement.Terminate;
@@ -996,6 +1004,7 @@ begin
     FTerminating := true;
     TFMXAppRunningHack.TerminateFMXApp;
     VCL.Forms.Application.Terminate;
+    FRunning := false;
   end;
 end;
 
